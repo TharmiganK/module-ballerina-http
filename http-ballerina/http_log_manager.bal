@@ -18,14 +18,14 @@ import ballerina/jballerina.java;
 
 public type TraceLogConfiguration record {|
     boolean consoleEnabled = false;
-    string path = "traceLog.txt";
+    string path = "";
     string host = "";
     int port = 0;
 |};
 
 public type AccessLogConfiguration record {|
     boolean consoleEnabled = false;
-    string path = "accessLog.txt";
+    string path = "";
 |};
 
 isolated function initializeHttpLogs() {
