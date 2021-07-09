@@ -18,6 +18,7 @@ import ballerina/jballerina.java;
 
 function init() {
     setModule();
+    initializeHttpLogs();
 }
 
 function setModule() = @java:Method {
