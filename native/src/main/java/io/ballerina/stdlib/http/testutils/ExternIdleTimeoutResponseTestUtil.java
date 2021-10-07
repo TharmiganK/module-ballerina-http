@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -38,10 +39,11 @@ import java.util.concurrent.TimeUnit;
 public class ExternIdleTimeoutResponseTestUtil {
 
     private static final Logger log = LoggerFactory.getLogger(ExternIdleTimeoutResponseTestUtil.class);
+    private static PrintStream console = System.out;
     /**
      * A larger client payload to be sent in chunks.
      */
-    private static final String CLIENT_PAYLOAD = "POST /idle/timeout408 HTTP/1.1\r\n"
+    private static final String CLIENT_PAYLOAD = "POST /idleTimeout/timeout408 HTTP/1.1\r\n"
             + "Content-Type: text/xml\r\n"
             + "Transfer-Encoding: chunked\r\n"
             + "Connection: Keep-Alive\r\n\r\n"
@@ -122,6 +124,7 @@ public class ExternIdleTimeoutResponseTestUtil {
     // introduced between the first and second chunk.
     public static boolean externTest408Response(int servicePort) {
         try {
+            console.println("Trying");
             SocketChannel clientSocket = connectToRemoteEndpoint(servicePort);
             writeDelayedRequest(clientSocket);
             String expected = "HTTP/1.1 408 Request Timeout\r\n" +
@@ -131,6 +134,7 @@ public class ExternIdleTimeoutResponseTestUtil {
                     "server: Mysql";
             readAndAssertResponse(clientSocket, expected);
         } catch (IOException | InterruptedException e) {
+            console.println("Exception occurred : " + e.getMessage());
             log.error("Error in processing request" + e.getMessage());
             return false;
         }
@@ -144,6 +148,7 @@ public class ExternIdleTimeoutResponseTestUtil {
      * @throws IOException if there's an error when connecting to remote endpoint.
      */
     private static SocketChannel connectToRemoteEndpoint(int servicePort) throws IOException {
+        console.println("Connect to remote endpoint : Start");
         InetSocketAddress remoteAddress = new InetSocketAddress("127.0.0.1", servicePort);
 
         SocketChannel clientSocket = SocketChannel.open();
@@ -155,6 +160,7 @@ public class ExternIdleTimeoutResponseTestUtil {
         if (!clientSocket.finishConnect()) {
             throw new Error("Cannot connect to server");
         }
+        console.println("Connect to remote endpoint : End");
         return clientSocket;
     }
 
@@ -166,6 +172,7 @@ public class ExternIdleTimeoutResponseTestUtil {
      * @throws InterruptedException if the thread sleep is interrupted.
      */
     private static void writeDelayedRequest(SocketChannel socketChannel) throws IOException, InterruptedException {
+        console.println("Write Delayed Request : Start");
         int numWritten = 0;
         int i = 0;
         ByteBuffer buf = ByteBuffer.allocate(BUFFER_SIZE);
@@ -192,6 +199,7 @@ public class ExternIdleTimeoutResponseTestUtil {
                 }
             }
         }
+        console.println("Write Delayed Request : End");
     }
 
     /**
@@ -202,11 +210,13 @@ public class ExternIdleTimeoutResponseTestUtil {
      * @throws IOException if there's an error when reading the response or when closing the channel.
      */
     private static void readAndAssertResponse(SocketChannel socketChannel, String expected) throws IOException {
+        console.println("Read and Assert Response : Start");
         int count;
         ByteBuffer buffer = ByteBuffer.allocateDirect(1024);
         StringBuilder inboundContent = new StringBuilder();
 
         count = socketChannel.read(buffer);
+        console.println("Read and Assert Response : Here");
         Assert.assertTrue(count > 0);
         // Loop while data is available; channel is non-blocking
         while (count > 0) {
@@ -222,6 +232,7 @@ public class ExternIdleTimeoutResponseTestUtil {
             try {
                 count = socketChannel.read(buffer);
             } catch (IOException e) {
+                console.println("Cannot read more data when connection is closed");
                 //Ignores this exception because the read cannot succeed if the connection is closed in the middle.
                 log.warn("Cannot read more data when connection is closed", e);
             }
@@ -233,6 +244,8 @@ public class ExternIdleTimeoutResponseTestUtil {
         }
 
         String response = inboundContent.toString().trim();
+        console.println(response);
+        console.println(expected);
         //Ignore the server header
         int newLineIndex = response.lastIndexOf("\r\n");
         Assert.assertEquals(response.substring(0, newLineIndex).trim(), expected.trim());
