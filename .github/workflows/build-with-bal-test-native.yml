@@ -74,7 +74,7 @@ jobs:
                   packagePAT: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   perl -pi -e "s/^\s*ballerinaLangVersion=.*/ballerinaLangVersion=${{ env.BALLERINA_LANG_VERSION }}/" gradle.properties
-                  ./gradlew build -PbalNativeTest
+                  ./gradlew build -x :http-native:test -PbalNativeTest
 
     windows-build-with-bal-test-native:
         name: Build with bal test native on Windows
