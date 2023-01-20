@@ -1,6 +1,14 @@
 name: Ballerina HTTP module build
 
-on: [pull_request]
+on:
+    pull_request:
+    workflow_dispatch:
+        inputs:
+            additional_build_arguments:
+                description: Additional build arguments
+                required: false
+                type: string
+                default: ''
 
 jobs:
   ubuntu-build:
@@ -19,7 +27,7 @@ jobs:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
-            ./gradlew build
+            ./gradlew build ${{ inputs.additional_build_arguments }}
       - name: Generate Codecov Report
         uses: codecov/codecov-action@v2
 
@@ -40,7 +48,7 @@ jobs:
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
           JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF8
         run: |
-            ./gradlew.bat build
+            ./gradlew.bat build ${{ inputs.additional_build_arguments }}
 
   ubuntu-build-without-native-tests:
       name: Build on Ubuntu without native tests
@@ -57,4 +65,4 @@ jobs:
             env:
                 packageUser: ${{ github.actor }}
                 packagePAT: ${{ secrets.GITHUB_TOKEN }}
-            run: ./gradlew build -x http-native:test
+            run: ./gradlew build -x http-native:test ${{ inputs.additional_build_arguments }}
