@@ -148,9 +148,10 @@ public class ConnectionAvailabilityFuture {
             connectorException = new ConnectionTimedOutException("Connection timeout: " + socketAddress,
                                                                  HttpResponseStatus.BAD_GATEWAY.code());
         } else if (isSslException(cause)) {
+            System.out.println(cause);
             connectorException = new SslException(SSL_CONNECTION_ERROR + COLON + cause.getMessage()
                                                           + " " + socketAddress, HttpResponseStatus.BAD_GATEWAY.code());
-        } else if (cause instanceof UnknownHostException) {
+        } else if (cause instanceof UnknownHostException) {;
             connectorException = new UnresolvedHostException(ERROR_COULD_NOT_RESOLVE_HOST + COLON +
                     cause.getMessage(), HttpResponseStatus.BAD_GATEWAY.code());
         } else if (cause instanceof ClosedChannelException) {
