@@ -34,6 +34,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import org.testng.annotations.Test;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.mockito.Mockito.mock;
@@ -49,7 +50,7 @@ public class Http2ClientTimeoutHandlerPushStreamTest {
     private static final int PUSH_STREAM_ID = 2;
 
     @Test(description = "A push stream that idles out must fail its push response, not the completed primary one")
-    public void testIdlePushStreamFailsThePushResponse() throws Exception {
+    public void testIdlePushStreamFailsThePushResponse() {
         OutboundMsgHolder msgHolder = new OutboundMsgHolder(
                 new HttpCarbonRequest(new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/")));
         HttpCarbonResponse response = newResponse();
@@ -69,7 +70,7 @@ public class Http2ClientTimeoutHandlerPushStreamTest {
         ChannelHandlerContext ctx = channel.pipeline().context(marker);
         try {
             new Http2ClientTimeoutHandler(1, http2ClientChannel).onStreamInit(ctx, PUSH_STREAM_ID);
-            Thread.sleep(50);
+            channel.advanceTimeBy(1, TimeUnit.MILLISECONDS);
             channel.runScheduledPendingTasks();
 
             assertNotNull(getContentFailure(pushResponse), "The push response should fail");
