@@ -225,7 +225,8 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     private void releaseWaitingRequestsOnFailure() {
         targetChannel.reportConnectionAttemptFailed(new ClientConnectorException(
-                targetChannel.getChannel().id().asShortText(), REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
+                targetChannel.getChannel().id().asShortText(),
+                REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
     }
 
     public void setHttpResponseFuture(HttpResponseFuture httpResponseFuture) {

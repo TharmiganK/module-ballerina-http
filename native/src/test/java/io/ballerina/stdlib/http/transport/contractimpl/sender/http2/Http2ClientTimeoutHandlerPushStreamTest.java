@@ -88,6 +88,7 @@ public class Http2ClientTimeoutHandlerPushStreamTest {
         message.getFullHttpCarbonMessage().addListener(new FullHttpMessageListener() {
             @Override
             public void onComplete(HttpCarbonMessage httpCarbonMessage) {
+                // Only a failure is recorded
             }
 
             @Override
