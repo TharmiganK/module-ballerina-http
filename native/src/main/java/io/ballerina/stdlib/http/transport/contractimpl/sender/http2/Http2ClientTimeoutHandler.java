@@ -281,7 +281,8 @@ public class Http2ClientTimeoutHandler implements Http2DataEventListener {
         }
 
         private void handleIncompleteResponse(OutboundMsgHolder msgHolder, boolean primary) {
-            handleIncompleteInboundMessage(msgHolder.getResponse(), getErrorMessage(primary));
+            handleIncompleteInboundMessage(primary ? msgHolder.getResponse() : msgHolder.getPushResponse(streamId),
+                                           getErrorMessage(primary));
         }
 
         private String getErrorMessage(boolean primary) {
