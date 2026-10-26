@@ -168,6 +168,8 @@ public class Http2TargetHandler extends ChannelDuplexHandler {
                 if (!outboundMsgHolder.isFirstContentWritten()) {
                     httpOutboundRequest.getHttp2MessageStateContext()
                         .setSenderState(new SendingHeaders(Http2TargetHandler.this, this));
+                    // A retried or redirected request reuses its context, so the previous attempt's stream is dropped
+                    setStreamId(0);
                     outboundMsgHolder.setFirstContentWritten(true);
                 }
                 http2MessageStateContext.getSenderState().writeOutboundRequestBody(ctx, msg, http2MessageStateContext);
