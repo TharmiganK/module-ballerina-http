@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 
 - [Fail the HTTP/2 client requests waiting for a new connection with that connection attempt's error, instead of each request opening its own connection after the attempt fails](https://github.com/ballerina-platform/ballerina-library/issues/9233)
+- [Abort a passthrough response whose backend body fails part-way, by closing the HTTP/1.1 connection or resetting the HTTP/2 stream, instead of ending the truncated body as if it were complete](https://github.com/ballerina-platform/ballerina-library/issues/9349)
 - [Return an error from `getByteStream(arraySize)` for a non-positive `arraySize`, instead of an endless stream of empty arrays or a failure on the first read](https://github.com/ballerina-platform/ballerina-library/issues/9267)
 
 ## [2.18.1] - 2026-10-16
