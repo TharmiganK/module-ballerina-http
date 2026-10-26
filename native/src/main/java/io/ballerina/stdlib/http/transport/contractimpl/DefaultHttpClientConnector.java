@@ -294,6 +294,12 @@ public class DefaultHttpClientConnector implements HttpClientConnector {
 
                     targetChannel.setChannel(targetNettyChannel);
                     targetChannel.configTargetHandler(httpOutboundRequest, httpResponseFuture);
+                    if (!targetNettyChannel.isActive()) {
+                        // Closed before the handler knew its channel, so its channelInactive could not report it
+                        targetChannel.reportConnectionAttemptFailed(new ClientConnectorException(
+                                targetNettyChannel.id().asShortText(),
+                                REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
+                    }
                     httpResponseFuture.setBackPressureObservable(targetChannel.getBackPressureObservable());
                     Util.setCorrelationIdForLogging(targetNettyChannel.pipeline(), targetChannel.getCorrelatedSource());
 

@@ -110,6 +110,7 @@ class Http2ChannelPool {
                     }
                     if (maxWaitTimeNanos > 0 && remainingNanos <= 0) {
                         LOG.warn("Timed out waiting for a new HTTP/2 connection, opening another connection");
+                        abandonOpeningAttempt(awaited, attempt);
                         return null;
                     }
                     awaited = openingAttempt;
@@ -140,6 +141,15 @@ class Http2ChannelPool {
             openingAttempt = attempt;
             attempt.markAsOpener();
             return true;
+        }
+
+        // An attempt that never reported back would keep every later caller waiting, so this caller replaces it
+        private void abandonOpeningAttempt(NewConnectionAttempt awaited, NewConnectionAttempt attempt) {
+            if (awaited != null && awaited == openingAttempt) {
+                newChannelState = NewChannelState.NEEDS_OPENER;
+                openingAttempt = null;
+                opensItsOwnConnection(attempt);
+            }
         }
 
         private Http2ClientChannel reserveStream() {

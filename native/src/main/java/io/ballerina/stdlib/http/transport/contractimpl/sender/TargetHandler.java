@@ -123,12 +123,15 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        // Before the response fails, so a request sent on that failure does not wait for this connection
-        releaseWaitingRequestsOnFailure();
-        if (!idleTimeoutTriggered) {
-            targetChannel.senderReqRespStateManager.handleAbruptChannelClosure(this, httpResponseFuture);
+        // Not yet configured: the connection closed before its request was handed over, which reports it instead
+        if (targetChannel != null) {
+            // Before the response fails, so a request sent on that failure does not wait for this connection
+            releaseWaitingRequestsOnFailure();
+            if (!idleTimeoutTriggered) {
+                targetChannel.senderReqRespStateManager.handleAbruptChannelClosure(this, httpResponseFuture);
+            }
+            connectionManager.invalidateTargetChannel(targetChannel);
         }
-        connectionManager.invalidateTargetChannel(targetChannel);
 
         if (handlerExecutor != null) {
             handlerExecutor.executeAtTargetConnectionTermination(Integer.toString(ctx.hashCode()));
@@ -221,11 +224,8 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void releaseWaitingRequestsOnFailure() {
-        if (Objects.nonNull(targetChannel)) {
-            targetChannel.reportConnectionAttemptFailed(new ClientConnectorException(
-                    targetChannel.getChannel().id().asShortText(),
-                    REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
-        }
+        targetChannel.reportConnectionAttemptFailed(new ClientConnectorException(
+                targetChannel.getChannel().id().asShortText(), REMOTE_SERVER_CLOSED_BEFORE_INITIATING_OUTBOUND_REQUEST));
     }
 
     public void setHttpResponseFuture(HttpResponseFuture httpResponseFuture) {

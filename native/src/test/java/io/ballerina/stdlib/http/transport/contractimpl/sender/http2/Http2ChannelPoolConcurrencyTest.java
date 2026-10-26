@@ -179,27 +179,25 @@ public class Http2ChannelPoolConcurrencyTest {
     }
 
     @Test(timeOut = 30000,
-          description = "A connection opened by a request that stopped waiting must not end the attempt being opened")
-    public void testChannelOfARequestThatStoppedWaitingKeepsTheOpenerAttempt() throws Exception {
-        Http2ConnectionManager connectionManager = newConnectionManager(2, 1000);
-        NewConnectionAttempt opener = claimNewConnection(connectionManager);
+          description = "A request that stops waiting for an attempt that never reports back must take it over")
+    public void testRequestThatStoppedWaitingTakesOverTheOpenerAttempt() throws Exception {
+        Http2ConnectionManager connectionManager = newConnectionManager(100, 2000);
+        NewConnectionAttempt stalled = claimNewConnection(connectionManager);
         NewConnectionAttempt impatient = new NewConnectionAttempt();
         assertNull(connectionManager.fetchChannel(ROUTE, impatient), "The request should open its own after waiting");
-        assertFalse(impatient.isOpener());
-        Http2ClientChannel impatientChannel = newHttp2ClientChannel(connectionManager);
-        connectionManager.addHttp2ClientChannel(ROUTE, impatientChannel, impatient);
-        assertSame(fetch(connectionManager), impatientChannel, "The added channel should take one stream");
+        assertTrue(impatient.isOpener(), "The request should take over opening the connection");
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
             Future<Http2ClientChannel> waitingRequest = executor.submit(() -> fetch(connectionManager));
             assertStillWaiting(waitingRequest);
 
-            ClientConnectorException failure = new ClientConnectorException(null, "Connection refused");
-            connectionManager.failWaitingRequests(ROUTE, opener, failure);
-            ExecutionException failed = expectThrows(ExecutionException.class,
-                                                      () -> waitingRequest.get(5, TimeUnit.SECONDS));
-            assertSame(failed.getCause(), failure);
+            connectionManager.failWaitingRequests(ROUTE, stalled, new ClientConnectorException(null, "Refused"));
+            assertStillWaiting(waitingRequest);
+
+            Http2ClientChannel http2ClientChannel = newHttp2ClientChannel(connectionManager);
+            connectionManager.addHttp2ClientChannel(ROUTE, http2ClientChannel, impatient);
+            assertSame(waitingRequest.get(5, TimeUnit.SECONDS), http2ClientChannel);
         } finally {
             executor.shutdownNow();
         }
