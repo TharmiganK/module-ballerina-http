@@ -114,6 +114,7 @@
             <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolMaxConnTestCase" />
             <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolTimeoutProxyTestCase" />
             <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolMainTestCase" />
+            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionReuseOnResponseEndTestCase" />
 <!--Issue https://github.com/ballerina-platform/ballerina-standard-library/issues/317#issuecomment-816583427-->
 <!--            <class name="io.ballerina.stdlib.http.transport.connectionpool.ConnectionPoolWaitingTimeoutTestCase" />-->
 
