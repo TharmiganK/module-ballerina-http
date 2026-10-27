@@ -70,6 +70,8 @@ public class Http2ClientTimeoutHandlerPushStreamTest {
         ChannelHandlerContext ctx = channel.pipeline().context(marker);
         try {
             new Http2ClientTimeoutHandler(1, http2ClientChannel).onStreamInit(ctx, PUSH_STREAM_ID);
+            // Idleness is measured on the system clock, which advancing the channel's clock does not move
+            msgHolder.setLastReadWriteTime(System.nanoTime() - TimeUnit.SECONDS.toNanos(1));
             channel.advanceTimeBy(1, TimeUnit.MILLISECONDS);
             channel.runScheduledPendingTasks();
 
